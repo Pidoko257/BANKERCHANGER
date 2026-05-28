@@ -28,20 +28,39 @@ function truncateTx(hash: string): string {
 
 interface BetListProps {
   bets: Bet[];
-  /** Fighter names for outcome badge labels */
-  fighter_a: string;
-  fighter_b: string;
-  /** Connected wallet address — highlights own bets */
+  fighterA: string;
+  fighterB: string;
   walletAddress?: string | null;
+  isLoading?: boolean;
 }
 
-export function BetList({ bets, fighter_a, fighter_b, walletAddress }: BetListProps): JSX.Element {
+export function BetList({ bets, fighterA, fighterB, walletAddress, isLoading }: Readonly<BetListProps>): JSX.Element {
   const [page, setPage] = useState(1);
 
-  const sideLabel = (side: BetSide) =>
-    side === 'fighter_a' ? fighter_a : side === 'fighter_b' ? fighter_b : 'Draw';
+  const sideLabel = (side: BetSide): string => {
+    if (side === 'fighter_a') return fighterA;
+    if (side === 'fighter_b') return fighterB;
+    return 'Draw';
+  };
 
-  // Sort DESC by placed_at
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <h2 className="text-white font-semibold">Recent Bets</h2>
+        <div className="text-gray-500 text-sm">Loading…</div>
+      </div>
+    );
+  }
+
+  if (bets.length === 0) {
+    return (
+      <div className="space-y-3">
+        <h2 className="text-white font-semibold">Recent Bets</h2>
+        <p className="text-gray-500 text-sm">No bets yet.</p>
+      </div>
+    );
+  }
+
   const sorted = [...bets].sort(
     (a, b) => new Date(b.placed_at).getTime() - new Date(a.placed_at).getTime(),
   );
@@ -49,12 +68,9 @@ export function BetList({ bets, fighter_a, fighter_b, walletAddress }: BetListPr
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const paginated = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  if (bets.length === 0) {
-    return <p className="text-gray-500 text-sm">No bets yet.</p>;
-  }
-
   return (
     <div className="space-y-3">
+      <h2 className="text-white font-semibold">Recent Bets</h2>
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm text-left text-gray-300">
           <thead>
@@ -67,7 +83,6 @@ export function BetList({ bets, fighter_a, fighter_b, walletAddress }: BetListPr
           </thead>
           <tbody>
             {paginated.map((bet) => {
-              // Bets have no bettor_address; use tx_hash as identifier
               const isOwn = walletAddress
                 ? bet.tx_hash.toLowerCase().startsWith(walletAddress.slice(0, 6).toLowerCase())
                 : false;
@@ -109,7 +124,6 @@ export function BetList({ bets, fighter_a, fighter_b, walletAddress }: BetListPr
         </table>
       </div>
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-xs text-gray-400">
           <span>

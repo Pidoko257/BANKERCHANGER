@@ -11,8 +11,8 @@ interface FighterCardProps {
   name: string;
   /** Implied probability in basis points (0–10000) */
   odds: number;
-  /** Pool amount in stroops (i128 string) */
-  poolAmount: string;
+  /** Pool amount in XLM (pre-computed float) */
+  poolXlm: number;
   /** Optional photo URL; falls back to placeholder */
   photoUrl?: string;
   /** Highlight border when user has bet on this fighter */
@@ -24,22 +24,18 @@ interface FighterCardProps {
 export function FighterCard({
   name,
   odds,
-  poolAmount,
+  poolXlm,
   photoUrl,
   isUserBet = false,
   isWinner = false,
-}: FighterCardProps): JSX.Element {
+}: Readonly<FighterCardProps>): JSX.Element {
   const oddsPercent = (odds / 100).toFixed(1);
-  const poolXlm = (parseInt(poolAmount, 10) / 1e7).toLocaleString(undefined, {
-    maximumFractionDigits: 0,
-  });
+  const poolFormatted = poolXlm.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
   return (
     <div
       className={`flex flex-col items-center gap-3 rounded-xl bg-gray-900 p-5 transition-colors ${
-        isUserBet
-          ? 'ring-2 ring-amber-400'
-          : 'ring-1 ring-gray-800'
+        isUserBet ? 'ring-2 ring-amber-400' : 'ring-1 ring-gray-800'
       }`}
     >
       {/* Avatar */}
@@ -50,11 +46,7 @@ export function FighterCard({
           <span className="text-3xl select-none">🥊</span>
         )}
         {isWinner && (
-          <span
-            className="absolute -top-1 -right-1 text-lg leading-none"
-            title="Winner"
-            aria-label="Winner"
-          >
+          <span className="absolute -top-1 -right-1 text-lg leading-none" title="Winner" aria-label="Winner">
             🏆
           </span>
         )}
@@ -71,7 +63,7 @@ export function FighterCard({
 
       {/* Pool */}
       <div className="text-center">
-        <p className="text-sm font-semibold text-white">{poolXlm} XLM</p>
+        <p className="text-sm font-semibold text-white">{poolFormatted} XLM</p>
         <p className="text-xs text-gray-500">in pool</p>
       </div>
 
