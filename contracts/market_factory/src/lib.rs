@@ -88,7 +88,7 @@ impl MarketFactory {
         env.storage().persistent().set(&MARKET_MAP, &Map::<u64, Address>::new(&env));
 
         let default_config = MarketConfig {
-            min_bet: config.default_min_bet,
+            min_bet_amount: config.default_min_bet,
             max_bet: config.default_max_bet,
             fee_bps: config.default_fee_bps,
             lock_before_secs: config.default_lock_before_secs,
@@ -147,10 +147,10 @@ impl MarketFactory {
         }
 
         // ── Config validation ─────────────────────────────
-        if config.min_bet == 0 {
-            return Err(ContractError::BetTooLow);
+        if config.min_bet_amount == 0 {
+            return Err(ContractError::BelowMinimum);
         }
-        if config.max_bet < config.min_bet {
+        if config.max_bet < config.min_bet_amount {
             return Err(ContractError::InvalidMarketParameters);
         }
 
@@ -520,7 +520,7 @@ mod tests {
 
     fn sample_market_config(_env: &Env) -> MarketConfig {
         MarketConfig {
-            min_bet: 1_000_000,
+            min_bet_amount: 1_000_000,
             max_bet: 100_000_000_000,
             fee_bps: 200,
             lock_before_secs: 3600,
@@ -621,7 +621,7 @@ mod tests {
         init_factory(&env, &client);
 
         let mut config = sample_market_config(&env);
-        config.min_bet = 0;
+        config.min_bet_amount = 0;
         let caller = Address::generate(&env);
         let result = client.try_create_market(
             &caller, &sample_fight(&env), &config, &None,
@@ -635,7 +635,7 @@ mod tests {
         init_factory(&env, &client);
 
         let mut config = sample_market_config(&env);
-        config.max_bet = config.min_bet - 1;
+        config.max_bet = config.min_bet_amount - 1;
         let caller = Address::generate(&env);
         let result = client.try_create_market(
             &caller, &sample_fight(&env), &config, &None,
