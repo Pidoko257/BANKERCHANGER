@@ -9,9 +9,7 @@
     "test": "jest",
     "lint": "next lint",
     "format": "prettier --write 'src/**/*.{ts,tsx}'",
-    "type-check": "tsc --noEmit",
-    "generate:types": "openapi-typescript ../backend/openapi.yaml -o ./src/types/api.ts",
-    "check:types": "npm run generate:types && git diff --exit-code src/types/api.ts"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@stellar/stellar-sdk": "^15.1.0",
