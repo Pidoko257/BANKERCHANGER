@@ -140,7 +140,26 @@ test(indexer): add event polling integration tests
 - No `any` types without explanatory comments.
 - Use Drizzle ORM for database operations.
 
-## Local Contract Testing
+## Migration Safety Guidelines
+
+To ensure safe deployments and zero-downtime operations, follow these migration rules:
+
+1. **Never Drop/Truncate/Rename Objects in a Single Deployment**
+   - Avoid DROP COLUMN, DROP TABLE, TRUNCATE, or RENAME operations in migrations
+   - If you must remove a column, first deploy code that stops reading/writing it, then deploy a migration to drop it in a separate release
+2. **Backward Compatibility First**
+   - All migrations must be compatible with the previous version of the code
+   - For schema changes, ensure new columns have defaults or allow NULLs initially
+3. **Use the Migration Checker**
+   - Before committing migrations, run `npm run migrate:check` to catch destructive operations
+   - Use `npm run migrate:dry-run` to preview pending migrations
+4. **Test Migrations**
+   - Run migrations locally against a copy of production-like schema
+   - Test rollbacks whenever possible
+5. **Review Required**
+   - Any destructive migration requires explicit approval in PR review
+
+## Deployment
 
 ### Running Contract Tests
 
@@ -244,6 +263,27 @@ When deploying to production, refer to the [Operational Runbook](./runbook.md) f
 - **Contract Pause Operations** — Emergency pause and resume procedures
 - **RPC Node Troubleshooting** — Diagnosis and recovery from blockchain connectivity issues
 - **CLI Commands** — Quick reference for critical operations
+
+## Testing
+
+```bash
+# Frontend tests
+cd frontend
+npm run test
+
+# Backend tests
+cd backend
+npm run test
+
+# Contract tests
+cd contracts
+cargo test
+
+# Check migrations
+cd backend
+npm run migrate:check
+npm run migrate:dry-run
+```
 
 ## Reporting Issues
 
