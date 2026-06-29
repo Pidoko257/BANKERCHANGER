@@ -6,10 +6,10 @@ import { requireAdmin } from '../middleware/admin.middleware.js';
 import { validate } from '../middleware/validation.middleware.js';
 import { updateProfileBody } from '../schemas/validation.schemas.js';
 import { AuthenticatedRequest } from '../types/auth.types.js';
-import { UserService } from '../services/user.service.js';
+import { UserRepository } from '../repositories/user.repository.js';
 
 const router = Router();
-const userService = new UserService();
+const userRepository = new UserRepository();
 
 /**
  * Middleware: reject suspended users on any authenticated request (issue #37)
@@ -20,17 +20,13 @@ async function rejectSuspended(
   next: NextFunction
 ): Promise<void> {
   if (!req.user) return next();
-  try {
-    const user = userService.getMyProfile(req.user.userId);
-    if (!user.isActive) {
-      res.status(403).json({
-        success: false,
-        error: { code: 'ACCOUNT_SUSPENDED', message: 'Your account has been suspended' },
-      });
-      return;
-    }
-  } catch {
-    // User not found or other error; let auth middleware handle it
+  const user = await userRepository.findById(req.user.userId);
+  if (user && !user.isActive) {
+    res.status(403).json({
+      success: false,
+      error: { code: 'ACCOUNT_SUSPENDED', message: 'Your account has been suspended' },
+    });
+    return;
   }
   next();
 }
