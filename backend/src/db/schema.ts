@@ -64,6 +64,7 @@ export const bets = pgTable(
   (table) => ({
     market_id_idx: index('bets_market_id_idx').on(table.market_id),
     bettor_address_idx: index('bets_bettor_address_idx').on(table.bettor_address),
+    market_id_claimed_idx: index('bets_market_id_claimed_idx').on(table.market_id, table.claimed),
     tx_hash_idx: uniqueIndex('bets_tx_hash_idx').on(table.tx_hash),
   }),
 );
